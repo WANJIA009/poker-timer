@@ -1901,6 +1901,7 @@ document.querySelector('.top-center').addEventListener('click', function(e){
 });
 
 /* 数字点击编辑（奖金 + 盲注 + 统计） */
+var _editingEl = null;
 document.addEventListener('click', function(e){
   var el = e.target.closest('.editable');
   if (!el || el.querySelector('input')) return;
@@ -1915,8 +1916,9 @@ document.addEventListener('click', function(e){
   el.appendChild(input);
   input.focus();
   input.select();
+  _editingEl = el;
 
-  function commit(saveVal){
+  function finish(saveVal){
     if (saveVal){
       var v = parseInt(input.value, 10);
       if (!isNaN(v) && v >= 0){
@@ -1936,38 +1938,28 @@ document.addEventListener('click', function(e){
     }
     el.textContent = '';
     render();
+    _editingEl = null;
   }
+  input.addEventListener('blur', function(){ finish(true); });
   input.addEventListener('keydown', function(ev){
-    if (ev.key === 'Enter'){ ev.preventDefault(); commit(true); }
-    if (ev.key === 'Escape'){ ev.preventDefault(); commit(false); }
+    if (ev.key === 'Enter'){ ev.preventDefault(); finish(true); }
+    if (ev.key === 'Escape'){ ev.preventDefault(); finish(false); }
   });
   e.stopPropagation();
 });
-function closeEditing(e){
-  var inp = document.querySelector('.editable input');
-  if (inp && !inp.contains(e.target)){
-    var el = inp.parentElement;
-    var v = parseInt(inp.value, 10);
-    if (!isNaN(v) && v >= 0){
-      if (el.hasAttribute('data-idx')){
-        var idx = parseInt(el.getAttribute('data-idx'), 10);
-        prizes[idx].amount = v;
-      } else if (el.hasAttribute('data-key')){
-        var key = el.getAttribute('data-key');
-        var cb = blindStructure[state.level];
-        if (key === 'sb'){ cb.blind = v; }
-        else if (key === 'bb'){ cb.bigBlind = v; }
-        else if (key === 'ante'){ cb.ante = v; }
-        else { settings[key] = v; }
-      }
-      save();
-    }
-    el.textContent = '';
-    render();
+/* 触摸/鼠标点别处自动关闭 */
+document.addEventListener('touchstart', function(e){
+  if (_editingEl && !e.target.closest('.editable')){
+    var inp = _editingEl.querySelector('input');
+    if (inp) inp.blur();
   }
-}
-document.addEventListener('mousedown', closeEditing);
-document.addEventListener('touchstart', function(e){ closeEditing(e); }, true);
+}, true);
+document.addEventListener('mousedown', function(e){
+  if (_editingEl && !e.target.closest('.editable')){
+    var inp = _editingEl.querySelector('input');
+    if (inp) inp.blur();
+  }
+});
 
 /* 左侧盲注预览 */
 els.miniBlinds.addEventListener('click', function(e){
