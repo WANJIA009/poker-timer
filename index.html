@@ -1065,7 +1065,7 @@
         </div>
         <div class="stat-card ac-gold">
           <span class="k"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 5.5L21 8.4l-4.5 4.2 1.1 6-5.6-3-5.6 3 1.1-6L3 8.4l6.4-.9z"/></svg></span>奖池</span>
-          <span class="v glow editable" id="poolNum" data-key="prizePool">10,000</span>
+          <span class="v glow" id="poolNum">10,000</span>
         </div>
       </div>
       <div class="mini-blinds" id="miniBlinds"></div>
@@ -1354,6 +1354,7 @@ function fmtTime(sec){
   return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
 }
 function fmtNum(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function totalPrize(){ var s=0; for (var i=0;i<prizes.length;i++){ if(prizes[i].amount>0) s+=prizes[i].amount; } return s; }
 function fmtDuration(min){
   var h = Math.floor(min / 60), m = min % 60;
   return (h > 0 ? h + 'H' : '') + (m > 0 || h === 0 ? m + 'M' : '');
@@ -1450,7 +1451,7 @@ function render(){
   els.playerNum.textContent = settings.players;
   els.startStackNum.textContent = fmtNum(settings.startingStack);
   els.avgStack.textContent = fmtNum(settings.avgStack || settings.startingStack);
-  els.poolNum.textContent = fmtNum(settings.prizePool);
+  els.poolNum.textContent = fmtNum(totalPrize());
 
   els.btnStart.disabled = state.running;
   els.btnPause.disabled = !state.running;
@@ -1462,7 +1463,7 @@ function render(){
 
   els.footLevels.textContent = blindStructure.length + ' LEVELS';
   els.footEta.textContent = '≈ ' + fmtDuration(estimateTotal());
-  els.footPool.textContent = 'POOL ' + fmtNum(settings.prizePool);
+  els.footPool.textContent = 'POOL ' + fmtNum(totalPrize());
 
   renderPrizes();
   renderMiniBlinds();
@@ -1653,7 +1654,7 @@ function syncStage(){
   $('stageClock').textContent = els.topClock.textContent;
   $('stageBreak').textContent = isBreak ? '休息 ' + settings.breakMinutes + ' 分' : (settings.breakMinutes + ' 分钟');
   $('stageAvg').textContent = fmtNum(settings.startingStack);
-  $('stagePool').textContent = fmtNum(settings.prizePool);
+  $('stagePool').textContent = fmtNum(totalPrize());
   $('stageBlinds').textContent = c.sb + '/' + c.bb;
   $('stageAnte').textContent = String(c.ante);
   $('stageNext').textContent = n.sb + '/' + n.bb;
@@ -1724,7 +1725,7 @@ function buildInfo(){
     '<div class="info-card"><div class="k">参赛人数</div><div class="v">' + settings.players + ' 人</div></div>' +
     '<div class="info-card"><div class="k">起始筹码</div><div class="v">' + fmtNum(settings.startingStack) + '</div></div>' +
     '<div class="info-card"><div class="k">级别时长</div><div class="v">' + c.minutes + ' 分钟/级</div></div>' +
-    '<div class="info-card"><div class="k">奖池</div><div class="v">' + fmtNum(settings.prizePool) + '</div></div>' +
+    '<div class="info-card"><div class="k">奖池</div><div class="v">' + fmtNum(totalPrize()) + '</div></div>' +
     '<div class="info-card"><div class="k">休息安排</div><div class="v">' + (settings.breakEvery > 0 ? '每 ' + settings.breakEvery + ' 级休 ' + settings.breakMinutes + ' 分' : '无') + '</div></div>' +
     '<div class="info-card"><div class="k">预计总时长</div><div class="v"><em>≈ ' + fmtDuration(estimateTotal()) + '</em></div></div>' +
     '<div class="info-card full"><div class="k">说明</div><div class="desc">倒计时结束自动升级，每 N 级后自动进入休息；级别时长可在「盲注结构」中单独编辑；平均筹码取起始筹码值。</div></div>' +
@@ -1795,7 +1796,6 @@ function buildSettings(){
     '<div class="field"><label>赛事名称</label><input id="setName" type="text" value="' + esc(settings.eventName) + '"></div>' +
     '<div class="field"><label>参赛人数</label><input id="setPlayers" type="number" min="2" max="1000" value="' + settings.players + '"></div>' +
     '<div class="field"><label>起始筹码</label><input id="setStack" type="number" min="100" step="100" value="' + settings.startingStack + '"></div>' +
-    '<div class="field"><label>奖池</label><input id="setPool" type="number" min="0" step="100" value="' + settings.prizePool + '"></div>' +
     '</div>' +
     '<div class="section-label">休息与提醒</div>' +
     '<div class="form-grid">' +
@@ -2011,7 +2011,6 @@ els.sheetBody.addEventListener('click', function(e){
     var name = $('setName').value.trim() || DEFAULT_SETTINGS.eventName;
     var players = parseInt($('setPlayers').value, 10);
     var stack = parseInt($('setStack').value, 10);
-    var pool = parseInt($('setPool').value, 10);
     var bevery = parseInt($('setBreakEvery').value, 10);
     var bmin = parseInt($('setBreakMin').value, 10);
     var sound = $('setSound').checked;
@@ -2019,14 +2018,12 @@ els.sheetBody.addEventListener('click', function(e){
     var warnAt = parseInt($('setWarnAt').value, 10) || 30;
     if (!players || players < 2){ toast('参赛人数至少 2 人', true); return; }
     if (!stack || stack < 100){ toast('起始筹码不能低于 100', true); return; }
-    if (isNaN(pool) || pool < 0){ toast('奖池数值无效', true); return; }
     if (bevery === 0) bmin = 0;
     if (isNaN(bmin) || bmin < 0){ toast('休息时长无效', true); return; }
 
     settings.eventName = name;
     settings.players = players;
     settings.startingStack = stack;
-    settings.prizePool = pool;
     settings.breakEvery = bevery;
     settings.breakMinutes = bmin;
     settings.sound = sound;
