@@ -1061,7 +1061,7 @@
         </div>
         <div class="stat-card ac-violet">
           <span class="k"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5 5.6.6-4.2 3.7 1.2 5.5L12 15l-5 2.8 1.2-5.5L4 8.6 9.6 8z"/></svg></span>平均筹码</span>
-          <span class="v" id="avgStack">10,000</span>
+          <span class="v editable" id="avgStack" data-key="avgStack">10,000</span>
         </div>
         <div class="stat-card ac-gold">
           <span class="k"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 5.5L21 8.4l-4.5 4.2 1.1 6-5.6-3-5.6 3 1.1-6L3 8.4l6.4-.9z"/></svg></span>奖池</span>
@@ -1262,6 +1262,7 @@ var DEFAULT_SETTINGS = {
   eventName: '周末邀请赛',
   players: 10,
   startingStack: 10000,
+  avgStack: 10000,
   prizePool: 10000,
   breakEvery: 4,      // 每 N 级休息一次；0 = 不休息
   breakMinutes: 10,
@@ -1448,7 +1449,7 @@ function render(){
   els.anteNum.textContent = c.ante;
   els.playerNum.textContent = settings.players;
   els.startStackNum.textContent = fmtNum(settings.startingStack);
-  els.avgStack.textContent = fmtNum(settings.startingStack);
+  els.avgStack.textContent = fmtNum(settings.avgStack || settings.startingStack);
   els.poolNum.textContent = fmtNum(settings.prizePool);
 
   els.btnStart.disabled = state.running;
