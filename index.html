@@ -457,13 +457,16 @@
   .prize-item.top .prize-name{color:var(--gold);font-weight:600}
   .prize-item.silver .prize-name{color:#DCE9FA}
   .prize-item.bronze .prize-name{color:#FFD9A8}
-  .prize-amt{
-    font-family:var(--font-en);font-size:20px;font-weight:700;color:var(--text);
+  .prize-amt{    font-family:var(--font-en);font-size:20px;font-weight:700;color:var(--text);
     font-variant-numeric:tabular-nums;letter-spacing:.5px;
   }
   .prize-item.top .prize-amt{color:var(--gold);text-shadow:0 0 14px rgba(255,209,102,.45)}
   .prize-item.silver .prize-amt{color:#E8F1FD}
   .prize-item.bronze .prize-amt{color:#FFC88A}
+
+  .editable{cursor:text;border-bottom:1px dashed transparent;transition:border-color .2s}
+  .editable:hover{border-bottom-color:var(--line)}
+  .editable input{background:rgba(150,120,255,.1);border:1px solid var(--cyan);border-radius:6px;color:var(--text);font-family:var(--font-en);font-weight:700;font-size:inherit;width:80px;padding:2px 6px;text-align:right;outline:none}
 
   .prize-rest{
     margin-top:14px;padding-top:10px;
@@ -1476,7 +1479,7 @@ function renderPrizes(){
     html += '<div class="prize-item' + cls[i] + '">' +
       '<div class="prize-rank">' + p.rank + '</div>' +
       '<div class="prize-name">' + p.name + '</div>' +
-      '<div class="prize-amt">' + fmtNum(p.amount) + '</div></div>';
+      '<div class="prize-amt editable" data-idx="'+i+'">' + fmtNum(p.amount) + '</div></div>';
   }
   els.prizeList.innerHTML = html;
 }
@@ -1488,7 +1491,7 @@ function renderPrizeRest(){
     html += '<div class="pr-row">' +
       '<span class="pr-rank">' + p.rank + '</span>' +
       '<span class="pr-name">' + p.name + '</span>' +
-      '<span class="pr-amt">' + fmtNum(p.amount) + '</span></div>';
+      '<span class="pr-amt editable" data-idx="'+i+'">' + fmtNum(p.amount) + '</span></div>';
   }
   els.prizeRest.innerHTML = html;
 }
@@ -1897,6 +1900,30 @@ function editEventName(){
 $('btnEditName').addEventListener('click', function(e){ e.stopPropagation(); editEventName(); });
 document.querySelector('.top-center').addEventListener('click', function(e){
   if (e.target.id === 'topEventName') editEventName();
+});
+
+/* 奖金数字点击编辑 */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('.editable');
+  if (!el || el.querySelector('input')) return;
+  var idx = parseInt(el.getAttribute('data-idx'), 10);
+  if (isNaN(idx)) return;
+  var old = prizes[idx].amount;
+  var input = document.createElement('input');
+  input.type = 'number';
+  input.value = old;
+  el.textContent = '';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+  input.addEventListener('blur', function(){
+    var v = parseInt(input.value, 10);
+    if (!isNaN(v) && v >= 0) prizes[idx].amount = v;
+    save(); renderPrizeTop(); renderPrizeRest();
+  });
+  input.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter') input.blur();
+  });
 });
 
 /* 左侧盲注预览 */
