@@ -1649,7 +1649,7 @@ function syncStage(){
   $('stageEvent').textContent = settings.eventName || '扑克赛事';
   $('stageLevel').textContent = isBreak ? '→ L' + n.level : ('L' + c.level);
   $('stagePlayers').textContent = String(settings.players);
-  $('stagePrizes').textContent = String(prizes.length);
+  $('stagePrizes').textContent = String(prizes.filter(function(p){return p.amount > 0;}).length);
   $('stageClock').textContent = els.topClock.textContent;
   $('stageBreak').textContent = isBreak ? '休息 ' + settings.breakMinutes + ' 分' : (settings.breakMinutes + ' 分钟');
   $('stageAvg').textContent = fmtNum(settings.startingStack);
