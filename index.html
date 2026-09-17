@@ -1757,10 +1757,10 @@ function buildPrizes(){
   var html = '<table class="tbl"><thead><tr><th>名次</th><th>奖励</th><th>金额</th></tr></thead><tbody>';
   for (var i = 0; i < prizes.length; i++){
     var p = prizes[i];
-    html += '<tr><td>' + p.rank + '</td><td>' + p.name + '</td><td>' + fmtNum(p.amount) + '</td></tr>';
+    html += '<tr><td>' + p.rank + '</td><td>' + p.name + '</td><td class="prize-amt editable" data-idx="' + i + '">' + fmtNum(p.amount) + '</td></tr>';
   }
   return html + '</tbody></table>' +
-    '<p class="note">示例奖金表，前 3 名与主界面一致，可在代码中调整。</p>';
+    '<p class="note">点击金额可直接编辑 · 前 3 名与主界面一致</p>';
 }
 
 function presetBtnsHtml(){
@@ -1944,6 +1944,40 @@ document.addEventListener('click', function(e){
   });
   e.stopPropagation();
 });
+/* 触摸/鼠标点别处自动关闭（捕获阶段，确保触发） */
+document.addEventListener('touchstart', function(e){
+  var inp = document.querySelector('.editable input');
+  if (inp && !e.target.closest('.editable')){
+    finish2(inp.parentElement, inp, true);
+  }
+}, true);
+document.addEventListener('mousedown', function(e){
+  var inp = document.querySelector('.editable input');
+  if (inp && !e.target.closest('.editable')){
+    finish2(inp.parentElement, inp, true);
+  }
+});
+function finish2(el, input, saveVal){
+  if (saveVal){
+    var v = parseInt(input.value, 10);
+    if (!isNaN(v) && v >= 0){
+      if (el.hasAttribute('data-idx')){
+        var idx = parseInt(el.getAttribute('data-idx'), 10);
+        prizes[idx].amount = v;
+      } else if (el.hasAttribute('data-key')){
+        var key = el.getAttribute('data-key');
+        var cb = blindStructure[state.level];
+        if (key === 'sb'){ cb.blind = v; }
+        else if (key === 'bb'){ cb.bigBlind = v; }
+        else if (key === 'ante'){ cb.ante = v; }
+        else { settings[key] = v; }
+      }
+      try { save(); } catch(err) {}
+    }
+  }
+  el.textContent = '';
+  render();
+}
 
 /* 左侧盲注预览 */
 els.miniBlinds.addEventListener('click', function(e){
