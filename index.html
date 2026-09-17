@@ -769,11 +769,14 @@
   }
   .stage-time{
     position:absolute;top:44%;left:50%;transform:translate(-52%,-50%);
-    font-family:'Rajdhani','Orbitron',sans-serif;font-weight:700;
+    font-family:var(--font-en);font-weight:900;
     font-size:clamp(90px,16vw,200px);line-height:1;
     color:#fff;letter-spacing:2px;
     font-variant-numeric:tabular-nums;
     text-shadow:0 0 60px rgba(120,140,255,.45), 0 4px 30px rgba(0,0,0,.4);
+  }
+  .stage-time .st-m,.stage-time .st-s{display:inline-block;width:1.3em;text-align:center}
+  .stage-time .st-colon{display:inline-block;width:0.45em;text-align:center}
   }
   .stage-time.urgent{
     color:#FF5C7A;
@@ -1625,7 +1628,9 @@ function exitStage(){
 function syncStage(){
   var isBreak = state.mode === 'break';
   var c = cur(), n = next();
-  $('stageTime').textContent = fmtTime(state.remaining);
+  var _t = fmtTime(state.remaining);
+  var _mm = _t.slice(0,2), _ss = _t.slice(3);
+  $('stageTime').innerHTML = '<span class="st-m">'+_mm+'</span><span class="st-colon">:</span><span class="st-s">'+_ss+'</span>';
   $('stageTime').classList.toggle('urgent', state.running && !isBreak && settings.warnEnabled && state.remaining <= settings.warnAt);
   $('stageEvent').textContent = settings.eventName || '扑克赛事';
   $('stageLevel').textContent = isBreak ? '→ L' + n.level : ('L' + c.level);
