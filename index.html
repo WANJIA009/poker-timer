@@ -464,9 +464,8 @@
   .prize-item.silver .prize-amt{color:#E8F1FD}
   .prize-item.bronze .prize-amt{color:#FFC88A}
 
-  .editable{cursor:text;outline:none;border-bottom:1px dashed transparent;transition:border-color .2s}
+  .editable{cursor:text;border-bottom:1px dashed transparent;transition:border-color .2s}
   .editable:hover{border-bottom-color:var(--line)}
-  .editable:focus{border-bottom-color:var(--cyan);background:rgba(150,120,255,.12)}
 
   .prize-rest{
     margin-top:14px;padding-top:10px;
@@ -1479,7 +1478,7 @@ function renderPrizes(){
     html += '<div class="prize-item' + cls[i] + '">' +
       '<div class="prize-rank">' + p.rank + '</div>' +
       '<div class="prize-name">' + p.name + '</div>' +
-      '<div class="prize-amt editable" contenteditable="true" data-idx="'+i+'">' + fmtNum(p.amount) + '</div></div>';
+      '<div class="prize-amt editable" data-idx="'+i+'">' + fmtNum(p.amount) + '</div></div>';
   }
   els.prizeList.innerHTML = html;
 }
@@ -1491,7 +1490,7 @@ function renderPrizeRest(){
     html += '<div class="pr-row">' +
       '<span class="pr-rank">' + p.rank + '</span>' +
       '<span class="pr-name">' + p.name + '</span>' +
-      '<span class="pr-amt editable" contenteditable="true" data-idx="'+i+'">' + fmtNum(p.amount) + '</span></div>';
+      '<span class="pr-amt editable" data-idx="'+i+'">' + fmtNum(p.amount) + '</span></div>';
   }
   els.prizeRest.innerHTML = html;
 }
@@ -1903,17 +1902,17 @@ document.querySelector('.top-center').addEventListener('click', function(e){
 });
 
 /* 奖金数字点击编辑 */
-document.addEventListener('focusout', function(e){
+document.addEventListener('click', function(e){
   var el = e.target.closest('.editable');
   if (!el) return;
   var idx = parseInt(el.getAttribute('data-idx'), 10);
   if (isNaN(idx)) return;
-  var v = parseInt(el.textContent.replace(/,/g,''), 10);
-  if (!isNaN(v) && v >= 0) prizes[idx].amount = v;
+  var old = prizes[idx].amount;
+  var v = prompt('修改第' + (idx+1) + '名奖金', old);
+  if (v === null) return;
+  var n = parseInt(v, 10);
+  if (!isNaN(n) && n >= 0) prizes[idx].amount = n;
   save(); renderPrizeTop(); renderPrizeRest();
-});
-document.addEventListener('keydown', function(e){
-  if (e.key === 'Enter' && e.target.closest('.editable')){ e.preventDefault(); e.target.blur(); }
 });
 
 /* 左侧盲注预览 */
