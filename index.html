@@ -1901,47 +1901,32 @@ document.querySelector('.top-center').addEventListener('click', function(e){
 });
 
 /* 奖金数字点击编辑 */
-var _editingInput = null;
-function closeEditing(saveVal){
-  if (!_editingInput) return;
-  var input = _editingInput;
-  var el = input.parentElement;
-  var idx = parseInt(el.getAttribute('data-idx'), 10);
-  if (saveVal){
-    var v = parseInt(input.value, 10);
-    if (!isNaN(v) && v >= 0) prizes[idx].amount = v;
-    save();
-  }
-  _editingInput = null;
-  renderPrizeTop(); renderPrizeRest();
-}
 document.addEventListener('click', function(e){
   var el = e.target.closest('.editable');
-  if (el && !el.querySelector('input')){
-    var idx = parseInt(el.getAttribute('data-idx'), 10);
-    if (isNaN(idx)) return;
-    var old = prizes[idx].amount;
-    el.textContent = '';
-    var input = document.createElement('input');
-    input.type = 'number';
-    input.value = old;
-    input.style.cssText = 'width:80px;background:rgba(150,120,255,.15);border:1px solid #9D8CFF;border-radius:6px;color:#fff;font-family:Orbitron,sans-serif;font-weight:700;font-size:inherit;padding:2px 6px;text-align:right;outline:none;margin:0;';
-    el.appendChild(input);
-    input.focus();
-    input.select();
-    _editingInput = input;
-    input.addEventListener('blur', function(){ closeEditing(true); });
-    input.addEventListener('keydown', function(ev){
-      if (ev.key === 'Enter'){ ev.preventDefault(); input.blur(); }
-      if (ev.key === 'Escape'){ ev.preventDefault(); closeEditing(false); }
-    });
-    e.stopPropagation();
+  if (!el || el.querySelector('input')) return;
+  var idx = parseInt(el.getAttribute('data-idx'), 10);
+  if (isNaN(idx)) return;
+  var old = prizes[idx].amount;
+  el.textContent = '';
+  var input = document.createElement('input');
+  input.type = 'number';
+  input.value = old;
+  input.style.cssText = 'width:80px;background:rgba(150,120,255,.15);border:1px solid #9D8CFF;border-radius:6px;color:#fff;font-family:Orbitron,sans-serif;font-weight:700;font-size:inherit;padding:2px 6px;text-align:right;outline:none;margin:0;';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+  function done(saveVal){
+    var v = parseInt(input.value, 10);
+    if (saveVal && !isNaN(v) && v >= 0) prizes[idx].amount = v;
+    el.textContent = fmtNum(prizes[idx].amount);
+    save();
   }
-});
-document.addEventListener('mousedown', function(e){
-  if (_editingInput && !_editingInput.contains(e.target)){
-    closeEditing(true);
-  }
+  input.addEventListener('blur', function(){ done(true); });
+  input.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter'){ ev.preventDefault(); done(true); input.blur(); }
+    if (ev.key === 'Escape'){ ev.preventDefault(); done(false); input.blur(); }
+  });
+  e.stopPropagation();
 });
 
 /* 左侧盲注预览 */
