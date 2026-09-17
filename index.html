@@ -1943,10 +1943,9 @@ document.addEventListener('click', function(e){
   });
   e.stopPropagation();
 });
-document.addEventListener('mousedown', function(e){
+function closeEditing(e){
   var inp = document.querySelector('.editable input');
   if (inp && !inp.contains(e.target)){
-    // 触发 commit
     var el = inp.parentElement;
     var v = parseInt(inp.value, 10);
     if (!isNaN(v) && v >= 0){
@@ -1966,7 +1965,9 @@ document.addEventListener('mousedown', function(e){
     el.textContent = '';
     render();
   }
-});
+}
+document.addEventListener('mousedown', closeEditing);
+document.addEventListener('touchstart', function(e){ closeEditing(e); }, true);
 
 /* 左侧盲注预览 */
 els.miniBlinds.addEventListener('click', function(e){
