@@ -1473,26 +1473,38 @@ function render(){
 function renderPrizes(){
   var html = '';
   var cls = [' top', ' silver', ' bronze'];
-  for (var i = 0; i < 3 && i < prizes.length; i++){
+  var shown = 0;
+  for (var i = 0; i < prizes.length && shown < 3; i++){
     var p = prizes[i];
-    html += '<div class="prize-item' + cls[i] + '">' +
+    if (p.amount <= 0) continue;
+    html += '<div class="prize-item' + cls[shown] + '">' +
       '<div class="prize-rank">' + p.rank + '</div>' +
       '<div class="prize-name">' + p.name + '</div>' +
       '<div class="prize-amt editable" data-idx="'+i+'">' + fmtNum(p.amount) + '</div></div>';
+    shown++;
   }
   els.prizeList.innerHTML = html;
 }
 
 function renderPrizeRest(){
   var html = '';
-  for (var i = 3; i < prizes.length; i++){
+  var shown = 0;
+  var idx = 0;
+  for (var i = 0; i < prizes.length; i++){
     var p = prizes[i];
+    if (p.amount <= 0) continue;
+    shown++;
+    if (shown <= 3) continue;
     html += '<div class="pr-row">' +
       '<span class="pr-rank">' + p.rank + '</span>' +
       '<span class="pr-name">' + p.name + '</span>' +
       '<span class="pr-amt editable" data-idx="'+i+'">' + fmtNum(p.amount) + '</span></div>';
   }
   els.prizeRest.innerHTML = html;
+  /* 更新底部奖励人数 */
+  var total = 0;
+  for (var j = 0; j < prizes.length; j++){ if (prizes[j].amount > 0) total++; }
+  els.footPrizeTop.textContent = total + ' 人奖励';
 }
 
 function renderMiniBlinds(){
@@ -1758,10 +1770,13 @@ function buildPrizes(){
   var html = '<table class="tbl"><thead><tr><th>名次</th><th>奖励</th><th>金额</th></tr></thead><tbody>';
   for (var i = 0; i < prizes.length; i++){
     var p = prizes[i];
+    if (p.amount <= 0) continue;
     html += '<tr><td>' + p.rank + '</td><td>' + p.name + '</td><td class="prize-amt editable" data-idx="' + i + '">' + fmtNum(p.amount) + '</td></tr>';
   }
+  var total = 0;
+  for (var j = 0; j < prizes.length; j++){ if (prizes[j].amount > 0) total++; }
   return html + '</tbody></table>' +
-    '<p class="note">点击金额可直接编辑 · 前 3 名与主界面一致</p>';
+    '<p class="note">共 ' + total + ' 人有奖励 · 点击金额可直接编辑，填 0 则该名次不显示</p>';
 }
 
 function presetBtnsHtml(){
@@ -2083,7 +2098,6 @@ els.sheetBody.addEventListener('click', function(e){
 loadAll();
 state.level = Math.min(state.level, blindStructure.length - 1);
 state.remaining = cur().minutes * 60;
-els.footPrizeTop.textContent = 'CHAMPION';
 render();
 
 /* 实时时钟 */
