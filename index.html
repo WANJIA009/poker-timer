@@ -1901,7 +1901,6 @@ document.querySelector('.top-center').addEventListener('click', function(e){
 });
 
 /* 数字点击编辑（奖金 + 盲注 + 统计） */
-var _curInput = null;
 document.addEventListener('click', function(e){
   var el = e.target.closest('.editable');
   if (!el || el.querySelector('input')) return;
@@ -1916,37 +1915,56 @@ document.addEventListener('click', function(e){
   el.appendChild(input);
   input.focus();
   input.select();
-  _curInput = input;
 
-  function done(saveVal){
-    if (!_curInput) return;
-    _curInput = null;
-    var v = parseInt(input.value, 10);
-    if (saveVal && !isNaN(v) && v >= 0){
+  function commit(saveVal){
+    if (saveVal){
+      var v = parseInt(input.value, 10);
+      if (!isNaN(v) && v >= 0){
+        if (el.hasAttribute('data-idx')){
+          var idx = parseInt(el.getAttribute('data-idx'), 10);
+          prizes[idx].amount = v;
+        } else if (el.hasAttribute('data-key')){
+          var key = el.getAttribute('data-key');
+          var cb = blindStructure[state.level];
+          if (key === 'sb'){ cb.blind = v; }
+          else if (key === 'bb'){ cb.bigBlind = v; }
+          else if (key === 'ante'){ cb.ante = v; }
+          else { settings[key] = v; }
+        }
+        save();
+      }
+    }
+    el.textContent = '';
+    render();
+  }
+  input.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter'){ ev.preventDefault(); commit(true); }
+    if (ev.key === 'Escape'){ ev.preventDefault(); commit(false); }
+  });
+  e.stopPropagation();
+});
+document.addEventListener('mousedown', function(e){
+  var inp = document.querySelector('.editable input');
+  if (inp && !inp.contains(e.target)){
+    // 触发 commit
+    var el = inp.parentElement;
+    var v = parseInt(inp.value, 10);
+    if (!isNaN(v) && v >= 0){
       if (el.hasAttribute('data-idx')){
         var idx = parseInt(el.getAttribute('data-idx'), 10);
         prizes[idx].amount = v;
       } else if (el.hasAttribute('data-key')){
         var key = el.getAttribute('data-key');
-        if (key === 'sb'){ state.level.blind = v; }
-        else if (key === 'bb'){ state.level.bigBlind = v; }
-        else if (key === 'ante'){ state.level.ante = v; }
+        var cb = blindStructure[state.level];
+        if (key === 'sb'){ cb.blind = v; }
+        else if (key === 'bb'){ cb.bigBlind = v; }
+        else if (key === 'ante'){ cb.ante = v; }
         else { settings[key] = v; }
       }
       save();
     }
+    el.textContent = '';
     render();
-  }
-  input.addEventListener('blur', function(){ done(true); });
-  input.addEventListener('keydown', function(ev){
-    if (ev.key === 'Enter'){ ev.preventDefault(); done(true); input.blur(); }
-    if (ev.key === 'Escape'){ ev.preventDefault(); done(false); input.blur(); }
-  });
-  e.stopPropagation();
-});
-document.addEventListener('mousedown', function(e){
-  if (_curInput && !_curInput.contains(e.target)){
-    _curInput.blur();
   }
 });
 
