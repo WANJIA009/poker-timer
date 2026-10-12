@@ -769,16 +769,18 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 20px;
   }
   .stage-time{
-    position:absolute;top:44%;left:50%;transform:translate(-52%,-50%);
+    position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);
     font-family:var(--font-en);font-weight:900;
     font-size:clamp(90px,16vw,200px);line-height:1;
     color:#fff;letter-spacing:2px;
     font-variant-numeric:tabular-nums;
-    white-space:nowrap;
+    width:3.2em;
+    display:flex;align-items:baseline;justify-content:center;
     text-shadow:0 0 60px rgba(120,140,255,.45), 0 4px 30px rgba(0,0,0,.4);
   }
-  .stage-time .st-m,.stage-time .st-s{display:inline-block;width:1.5em;text-align:center}
-  .stage-time .st-colon{display:inline-block;width:0.5em;text-align:center}
+  .stage-time .st-m{flex:none;width:1.35em;text-align:right;padding-right:0.04em}
+  .stage-time .st-colon{flex:none;width:0.5em;text-align:center}
+  .stage-time .st-s{flex:none;width:1.35em;text-align:left;padding-left:0.04em}
   .stage-time.urgent{
     color:#FF5C7A;
     text-shadow:0 0 80px rgba(255,80,100,.7), 0 4px 30px rgba(0,0,0,.4);
@@ -900,7 +902,7 @@
   /* 大屏模式：手机横屏适配 */
   @media (max-width:767px){
     .stage-event{font-size:16px;letter-spacing:2px;top:3.5%}
-    .stage-time{font-size:clamp(70px,15vw,160px)!important;width:3.5em!important;top:46%!important}
+    .stage-time{font-size:clamp(70px,15vw,160px)!important;width:3.2em!important;top:46%!important}
     .stage-corner{gap:1.8vh}
     .stage-tl{top:12%;left:4%}
     .stage-tr{top:12%;right:4%}
