@@ -1304,7 +1304,7 @@
 var PRESETS = {
   standard: {
     name:'标准', minutes:12, breakEvery:4, breakMinutes:10,
-    levels:[[25,50,0],[50,100,0],[75,150,0],[100,200,0],[150,300,0],[200,400,25],[250,500,25],[300,600,50],[400,800,50],[500,1000,100],[600,1200,100],[800,1600,200],[1000,2000,200],[1500,3000,300],[2000,4000,400],[3000,6000,600],[4000,8000,800],[5000,10000,1000],[10000,20000,2000]]
+    levels:[[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[1000,2000,0],[1000,2000,0],[1000,2000,0],[1000,2000,0],[1000,2000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0]]
   },
   turbo: {
     name:'快速', minutes:8, breakEvery:4, breakMinutes:5,
@@ -1392,13 +1392,18 @@ var els = {
 };
 
 /* ============ 持久化 ============ */
-var LS_KEY = 'pokerTimer_v4';
+var LS_KEY = 'pokerTimer_v5';
 function saveAll(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({s:settings, b:blindStructure, p:prizes})); }catch(e){}
 }
 function loadAll(){
   try{
     var raw = localStorage.getItem(LS_KEY);
+    var legacy = null;
+    if (!raw){
+      legacy = localStorage.getItem('pokerTimer_v4');
+      if (legacy){ var d0 = JSON.parse(legacy); if (d0 && Array.isArray(d0.b)) delete d0.b; raw = JSON.stringify(d0); }
+    }
     if (!raw) return;
     var d = JSON.parse(raw);
     if (d.s && typeof d.s === 'object') settings = Object.assign({}, DEFAULT_SETTINGS, d.s);
@@ -1664,7 +1669,7 @@ function endBreak(){
   toast('进入第' + (state.level + 1) + '轮  ' + cur().sb + '/' + cur().bb);
 }
 /* 收筹码规则：进入指定轮次时提示收取 */
-var CHIP_FEE = {9:100, 14:1000, 17:5000};
+var CHIP_FEE = {9:100, 14:1000, 19:5000};
 function sndFee(){ beep(760,.14,0,.26); beep(1010,.2,.16,.26); beep(760,.14,.38,.2); }
 /* 大屏内联提示（收费金色 / 普通中性） */
 function stageNote(html, fee){
