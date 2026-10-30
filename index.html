@@ -1266,7 +1266,6 @@
   </div>
   <div class="stage-blinds">
     <div class="sg"><div class="sg-label">当前基础分</div><div class="sg-en">Current Blinds</div><div class="sg-val" id="stageBlinds">25/50</div></div>
-    <div class="sg"><div class="sg-label">前置分</div><div class="sg-en">Ante</div><div class="sg-val" id="stageAnte">0</div></div>
     <div class="sg"><div class="sg-label">下个级别</div><div class="sg-en">Next Blinds</div><div class="sg-val" id="stageNext">50/100</div></div>
   </div>
   <button class="stage-exit" id="stageExit" type="button">退出大屏</button>
@@ -1759,7 +1758,6 @@ function syncStage(){
   $('stageAvg').textContent = fmtNum(settings.startingStack);
   $('stagePool').textContent = fmtNum(totalPrize());
   $('stageBlinds').textContent = c.sb + '/' + c.bb;
-  $('stageAnte').textContent = String(c.ante);
   $('stageNext').textContent = n.sb + '/' + n.bb;
 }
 
