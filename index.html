@@ -1744,6 +1744,14 @@ function pause(){
   render();
 }
 
+/* 本轮结束：进入休息（如启用） */
+function enterBreak(){
+  state.mode = 'break';
+  state.remaining = settings.breakMinutes * 60;
+  state.lastTick = 0;
+  flashRing(); render(); sndBreak();
+  toast('休息时间 ' + settings.breakMinutes + ' 分钟');
+}
 /* 自动到点：结束当前级别 */
 function endLevel(){
   if (state.level >= blindStructure.length - 1){
@@ -1752,11 +1760,7 @@ function endLevel(){
     return;
   }
   if (settings.breakEvery > 0 && (state.level + 1) % settings.breakEvery === 0){
-    state.mode = 'break';
-    state.remaining = settings.breakMinutes * 60;
-    state.lastTick = 0;
-    flashRing(); render(); sndBreak();
-    toast('休息时间 ' + settings.breakMinutes + ' 分钟');
+    enterBreak();
     return;
   }
   gotoNext(true);
@@ -1812,6 +1816,16 @@ function gotoNext(auto){
   checkChipFee(state.level);
   flashRing(); render(); sndLevel();
   toast((auto ? '进入' : '已切换到') + '第' + (state.level + 1) + '轮  ' + cur().sb + '/' + cur().bb);
+}
+/* 手动「下一级」：同样先进入休息；休息中再点则跳过休息 */
+function manualNext(){
+  if (state.mode === 'break'){ endBreak(); return; }
+  if (state.level >= blindStructure.length - 1){ toast('已是最后一轮', true); return; }
+  if (settings.breakEvery > 0 && (state.level + 1) % settings.breakEvery === 0){
+    enterBreak();
+    return;
+  }
+  gotoNext(false);
 }
 function jumpTo(i){
   if (i < 0 || i >= blindStructure.length || i === state.level) return;
@@ -2055,10 +2069,7 @@ function collectBlinds(){
 /* ============ 事件 ============ */
 els.btnStart.addEventListener('click', start);
 els.btnPause.addEventListener('click', pause);
-els.btnNext.addEventListener('click', function(){
-  if (state.mode === 'break'){ toast('休息中，点击「下一级」跳过休息', true); }
-  gotoNext(false);
-});
+els.btnNext.addEventListener('click', function(){ manualNext(); });
 els.btnReset.addEventListener('click', reset);
 els.btnFull.addEventListener('click', toggleStage);
 $('stageExit').addEventListener('click', exitStage);
@@ -2070,7 +2081,7 @@ $('stageTime').addEventListener('click', function(){
   stageTap = now;
   if (state.mode === 'break'){ endBreak(); }
   else if (state.level >= blindStructure.length - 1){ toast('已是最后一轮', true); stageNote('已是最后一轮 · 全部级别已结束'); }
-  else { gotoNext(false); }
+  else { manualNext(); }
 });
 
 var tabBtns = document.querySelectorAll('.tab');
