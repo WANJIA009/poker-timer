@@ -1326,7 +1326,7 @@
   </div>
   <div class="stage-corner stage-tr">
     <div class="sg"><div class="sg-label">当前时间</div><div class="sg-en">Clock</div><div class="sg-val" id="stageClock">--:--:--</div></div>
-    <div class="sg"><div class="sg-label">下次休息</div><div class="sg-en">Next Break</div><div class="sg-val" id="stageBreak">10 分钟</div></div>
+    <div class="sg"><div class="sg-label">下次休息</div><div class="sg-en">Next Break</div><div class="sg-val" id="stageBreak">5 分钟</div></div>
     <div class="sg"><div class="sg-label">平均记分牌</div><div class="sg-en">Avg Chips</div><div class="sg-val" id="stageAvg">10,000</div></div>
     <div class="sg"><div class="sg-label">总记分牌</div><div class="sg-en">Total Chips</div><div class="sg-val" id="stagePool">10,000</div></div>
   </div>
@@ -1395,19 +1395,19 @@ var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],
 var STANDARD_MINUTES = [10,10,10,10,10,10,10,8,8,8,8,6,6,6,6,6,6];
 var PRESETS = {
   standard: {
-    name:'标准', minutes:10, breakEvery:4, breakMinutes:10,
+    name:'标准', minutes:10, breakEvery:1, breakMinutes:5,
     levels:BLIND_TABLE, minutesByLevel:STANDARD_MINUTES
   },
   turbo: {
-    name:'快速', minutes:8, breakEvery:4, breakMinutes:5,
+    name:'快速', minutes:8, breakEvery:1, breakMinutes:5,
     levels:BLIND_TABLE
   },
   deepstack: {
-    name:'深筹', minutes:20, breakEvery:3, breakMinutes:15,
+    name:'深筹', minutes:20, breakEvery:1, breakMinutes:5,
     levels:BLIND_TABLE
   },
   hyper: {
-    name:'超快', minutes:5, breakEvery:4, breakMinutes:3,
+    name:'超快', minutes:5, breakEvery:1, breakMinutes:5,
     levels:BLIND_TABLE
   }
 };
@@ -1419,8 +1419,8 @@ var DEFAULT_SETTINGS = {
   startingStack: 10000,
   avgStack: 10000,
   prizePool: 10000,
-  breakEvery: 4,      // 每 N 级休息一次；0 = 不休息
-  breakMinutes: 10,
+  breakEvery: 1,      // 每 N 级休息一次；0 = 不休息
+  breakMinutes: 5,
   sound: true,
   warnEnabled: true,  // 倒计时剩余秒数提醒
   warnAt: 30,         // 剩余多少秒时提醒
@@ -1485,7 +1485,7 @@ var els = {
 };
 
 /* ============ 持久化 ============ */
-var LS_KEY = 'pokerTimer_v7';
+var LS_KEY = 'pokerTimer_v8';
 function saveAll(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({s:settings, b:blindStructure, p:prizes})); }catch(e){}
 }
@@ -1494,7 +1494,7 @@ function loadAll(){
     var raw = localStorage.getItem(LS_KEY);
     var migrated = false;
     if (!raw){
-      var legacy = localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
+      var legacy = localStorage.getItem('pokerTimer_v7') || localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
       if (legacy){
         var d0 = JSON.parse(legacy);
         raw = JSON.stringify(d0);
@@ -1505,9 +1505,11 @@ function loadAll(){
     var d = JSON.parse(raw);
     if (d.s && typeof d.s === 'object') settings = Object.assign({}, DEFAULT_SETTINGS, d.s);
     if (migrated){
-      /* v7：换成 17 级新表，每级时长按新规则重建；保留赛事设置与奖金 */
+      /* v8：换成 17 级新表，每级结束后休息 5 分钟；保留赛事设置与奖金 */
       blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes, PRESETS.standard.minutesByLevel);
       settings.presetKey = 'standard';
+      settings.breakEvery = 1;
+      settings.breakMinutes = 5;
     } else if (Array.isArray(d.b) && d.b.length){
       blindStructure = d.b.map(function(x, i){
         return {level: i + 1, sb: +x.sb || 0, bb: +x.bb || 0, ante: +x.ante || 0, minutes: +x.minutes || 10};
@@ -2004,6 +2006,7 @@ function buildSettings(){
     '<div class="form-grid">' +
     '<div class="field"><label>休息频率</label><select id="setBreakEvery">' +
     '<option value="0"' + (settings.breakEvery === 0 ? ' selected' : '') + '>不休息</option>' +
+    '<option value="1"' + (settings.breakEvery === 1 ? ' selected' : '') + '>每 1 级休息一次</option>' +
     '<option value="3"' + (settings.breakEvery === 3 ? ' selected' : '') + '>每 3 级休息一次</option>' +
     '<option value="4"' + (settings.breakEvery === 4 ? ' selected' : '') + '>每 4 级休息一次</option>' +
     '<option value="5"' + (settings.breakEvery === 5 ? ' selected' : '') + '>每 5 级休息一次</option>' +
