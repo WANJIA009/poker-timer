@@ -1196,7 +1196,7 @@
       </div>
       <div class="mini-blinds" id="miniBlinds"></div>
       <div class="panel-foot">
-        <span id="footLevels">19 LEVELS</span>
+        <span id="footLevels">17 LEVELS</span>
         <span id="footEta">≈ 2H40M</span>
       </div>
     </aside>
@@ -1389,12 +1389,14 @@
 })();
 
 /* ============ 预设盲注结构 ============ */
-/* 统一大小盲级别表：Lv1 100/200 → Lv19 10000/20000，前注均为 0 */
-var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],[600,1200,0],[700,1400,0],[800,1600,0],[900,1800,0],[1000,2000,0],[1000,2000,0],[2000,4000,0],[2000,4000,0],[3000,6000,0],[3000,6000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0],[10000,20000,0]];
+/* 统一大小盲级别表：Lv1 100/200 → Lv17 5000/10000，前注均为 0 */
+var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],[600,1200,0],[700,1400,0],[800,1600,0],[900,1800,0],[1000,2000,0],[1000,2000,0],[2000,4000,0],[2000,4000,0],[3000,6000,0],[3000,6000,0],[5000,10000,0],[5000,10000,0]];
+/* 标准结构每级时长：1-7 级 10 分钟，8-11 级 8 分钟，12-17 级 6 分钟 */
+var STANDARD_MINUTES = [10,10,10,10,10,10,10,8,8,8,8,6,6,6,6,6,6];
 var PRESETS = {
   standard: {
-    name:'标准', minutes:12, breakEvery:4, breakMinutes:10,
-    levels:BLIND_TABLE
+    name:'标准', minutes:10, breakEvery:4, breakMinutes:10,
+    levels:BLIND_TABLE, minutesByLevel:STANDARD_MINUTES
   },
   turbo: {
     name:'快速', minutes:8, breakEvery:4, breakMinutes:5,
@@ -1427,14 +1429,15 @@ var DEFAULT_SETTINGS = {
 var settings = Object.assign({}, DEFAULT_SETTINGS);
 
 /* ============ 盲注结构 ============ */
-function buildBlindsFromPreset(levels, minutes){
+function buildBlindsFromPreset(levels, minutes, minutesByLevel){
   var arr = [];
   for (var i = 0; i < levels.length; i++){
-    arr.push({level: i + 1, sb: levels[i][0], bb: levels[i][1], ante: levels[i][2], minutes: minutes});
+    arr.push({level: i + 1, sb: levels[i][0], bb: levels[i][1], ante: levels[i][2],
+      minutes: (minutesByLevel && minutesByLevel[i] != null) ? minutesByLevel[i] : minutes});
   }
   return arr;
 }
-var blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes);
+var blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes, PRESETS.standard.minutesByLevel);
 
 var prizes = [
   {rank:1, name:'冠军', amount:500},
@@ -1482,7 +1485,7 @@ var els = {
 };
 
 /* ============ 持久化 ============ */
-var LS_KEY = 'pokerTimer_v6';
+var LS_KEY = 'pokerTimer_v7';
 function saveAll(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({s:settings, b:blindStructure, p:prizes})); }catch(e){}
 }
@@ -1491,7 +1494,7 @@ function loadAll(){
     var raw = localStorage.getItem(LS_KEY);
     var migrated = false;
     if (!raw){
-      var legacy = localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
+      var legacy = localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
       if (legacy){
         var d0 = JSON.parse(legacy);
         raw = JSON.stringify(d0);
@@ -1502,13 +1505,8 @@ function loadAll(){
     var d = JSON.parse(raw);
     if (d.s && typeof d.s === 'object') settings = Object.assign({}, DEFAULT_SETTINGS, d.s);
     if (migrated){
-      /* v6：旧盲注结构统一换成最新「大小盲表」，保留原来的每级时长 */
-      blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes);
-      var old = Array.isArray(d.b) ? d.b : [];
-      for (var i = 0; i < blindStructure.length; i++){
-        var m = old[i] ? +old[i].minutes : 0;
-        if (m > 0) blindStructure[i].minutes = m;
-      }
+      /* v7：换成 17 级新表，每级时长按新规则重建；保留赛事设置与奖金 */
+      blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes, PRESETS.standard.minutesByLevel);
       settings.presetKey = 'standard';
     } else if (Array.isArray(d.b) && d.b.length){
       blindStructure = d.b.map(function(x, i){
@@ -1871,7 +1869,7 @@ function applyPreset(key){
   if (!p) return;
   var wasRunning = state.running;
   pause();
-  blindStructure = buildBlindsFromPreset(p.levels, p.minutes);
+  blindStructure = buildBlindsFromPreset(p.levels, p.minutes, p.minutesByLevel);
   settings.breakEvery = p.breakEvery;
   settings.breakMinutes = p.breakMinutes;
   settings.presetKey = key;
@@ -1881,7 +1879,7 @@ function applyPreset(key){
   state.lastTick = 0;
   saveAll(); render();
   if (wasRunning) start();
-  toast('已应用【' + p.name + '】结构：' + blindStructure.length + ' 级 / ' + p.minutes + ' 分钟每级');
+  toast('已应用【' + p.name + '】结构：' + blindStructure.length + ' 级' + (p.minutesByLevel ? ' / 分级计时' : ' / ' + p.minutes + ' 分钟每级'));
 }
 
 /* ============ 模态面板 ============ */
@@ -1991,7 +1989,7 @@ function presetBtnsHtml(){
     var p = PRESETS[k];
     html += '<button class="preset-btn' + (settings.presetKey === k ? ' active' : '') + '" data-preset="' + k + '" type="button">' +
       '<span class="pn">' + p.name + '</span>' +
-      '<span class="pd">' + p.minutes + ' 分/级 · ' + p.levels.length + ' 级</span></button>';
+      '<span class="pd">' + (p.minutesByLevel ? '分级计时' : p.minutes + ' 分/级') + ' · ' + p.levels.length + ' 级</span></button>';
   }
   return html;
 }
@@ -2023,7 +2021,7 @@ function buildSettings(){
     '</div>' +
     '<div class="section-label">盲注结构预设</div>' +
     '<div class="presets" id="presetGroup">' + presetBtnsHtml() + '</div>' +
-    '<p class="note">当前结构：' + blindStructure.length + ' 个级别 · 每级 ' + cur().minutes + ' 分钟 · 预计总时长 ≈ ' + fmtDuration(estimateTotal()) + '。级别时长可在「盲注结构」中单独编辑。</p>' +
+    '<p class="note">当前结构：' + blindStructure.length + ' 个级别 · 当前第 ' + (state.level + 1) + ' 级 ' + cur().minutes + ' 分钟 · 预计总时长 ≈ ' + fmtDuration(estimateTotal()) + '。级别时长可在「盲注结构」中单独编辑。</p>' +
     '<div class="section-label">账号</div>' +
     '<p class="note">当前设备已登录。退出后需要重新输入账号密码才能进入。</p>' +
     '<div class="sheet-actions"><button class="btn ghost sm" id="btnLogout" type="button">退出登录</button></div>' +
