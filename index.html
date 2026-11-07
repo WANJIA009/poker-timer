@@ -1046,6 +1046,72 @@
   html.landscape .controls{gap:6px}
   html.landscape .btn{padding:7px 12px;font-size:12px;letter-spacing:2px}
   html.landscape .panel-foot{margin-top:9px;padding-top:8px;font-size:9px}
+  /* ============ 登录门禁 ============ */
+  body.auth-locked{overflow:hidden}
+  .auth-gate{
+    position:fixed;inset:0;z-index:10000;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(120% 100% at 50% -10%, rgba(120,90,255,.40), transparent 58%),
+      repeating-linear-gradient(115deg, rgba(160,135,255,.055) 0 1px, transparent 1px 46px),
+      linear-gradient(165deg,#120C33 0%,#0A0622 55%,#05030F 100%);
+    transition:opacity .4s var(--ease),visibility .4s var(--ease);
+  }
+  .auth-gate::after{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(620px 420px at 50% 44%, rgba(100,70,220,.20), transparent 70%);
+  }
+  .auth-gate.hidden{opacity:0;visibility:hidden;pointer-events:none}
+  .auth-card{
+    position:relative;z-index:2;width:min(410px,100%);
+    padding:34px 32px 26px;border-radius:18px;
+    border:1px solid rgba(150,120,255,.30);
+    background:linear-gradient(160deg,rgba(30,22,78,.97),rgba(12,8,36,.99));
+    box-shadow:0 40px 90px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(255,255,255,.03);
+  }
+  .auth-card.shake{animation:authShake .34s ease}
+  @keyframes authShake{
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-7px)}
+    40%{transform:translateX(6px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(2px)}
+  }
+  .auth-lock{
+    width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    background:rgba(141,124,255,.12);border:1px solid rgba(150,120,255,.30);margin-bottom:18px;
+  }
+  .auth-lock svg{width:22px;height:22px;stroke:#B9A6FF;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .auth-kicker{font-family:var(--font-en);font-size:10px;letter-spacing:3px;color:#8E86C0}
+  .auth-title{font-family:var(--font-en);font-size:26px;font-weight:800;letter-spacing:2px;margin-top:7px;color:#fff}
+  .auth-desc{margin-top:8px;font-size:13px;color:#A79FD6}
+  .auth-field{margin-top:18px}
+  .auth-field label{display:block;font-size:11px;letter-spacing:2.5px;color:#9C94CC;margin-bottom:7px}
+  .auth-field input{
+    width:100%;height:48px;padding:0 14px;border-radius:10px;
+    border:1px solid rgba(150,120,255,.28);background:rgba(6,3,20,.72);
+    color:#fff;font-size:16px;font-family:var(--font-cn);outline:none;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .auth-field input::placeholder{color:#6F6796}
+  .auth-field input:focus{border-color:#9D8CFF;box-shadow:0 0 0 3px rgba(141,124,255,.18)}
+  .auth-err{min-height:20px;margin-top:10px;font-size:12.5px;color:#FF7A93}
+  .auth-btn{
+    width:100%;height:48px;margin-top:12px;border:0;border-radius:10px;cursor:pointer;
+    font-family:var(--font-en);font-size:14px;font-weight:700;letter-spacing:4px;color:#070318;
+    background:linear-gradient(135deg,#A9B6FF,#7C8CFF 50%,#6366F1);
+    box-shadow:0 10px 26px rgba(99,102,241,.35);
+    transition:transform .15s,box-shadow .15s,filter .15s;
+  }
+  .auth-btn:hover{filter:brightness(1.08);box-shadow:0 12px 30px rgba(99,102,241,.45)}
+  .auth-btn:active{transform:translateY(1px)}
+  .auth-btn:disabled{cursor:default;filter:saturate(.5) brightness(.8);box-shadow:none}
+  .auth-foot{margin-top:18px;text-align:center;font-size:11px;letter-spacing:1.5px;color:#6F6796}
+  @media (max-width:480px){
+    .auth-card{padding:28px 24px 22px}
+    .auth-title{font-size:22px}
+  }
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
   }
@@ -1106,8 +1172,8 @@
         盲注
       </div>
       <div class="blind-row">
-        <div class="blind-cell"><div class="num editable" id="sbNum" data-key="sb">25</div><div class="lbl">小盲</div></div>
-        <div class="blind-cell"><div class="num editable" id="bbNum" data-key="bb">50</div><div class="lbl">大盲</div></div>
+        <div class="blind-cell"><div class="num editable" id="sbNum" data-key="sb">100</div><div class="lbl">小盲</div></div>
+        <div class="blind-cell"><div class="num editable" id="bbNum" data-key="bb">200</div><div class="lbl">大盲</div></div>
         <div class="blind-cell"><div class="num editable" id="anteNum" data-key="ante">0</div><div class="lbl">前注</div></div>
       </div>
       <div class="stat-grid">
@@ -1137,7 +1203,7 @@
 
     <!-- 中央计时器 -->
     <section class="panel timer-panel" id="timerPanel">
-      <div class="upcoming" id="upcoming"><span>即将进入下一级</span> <b id="upNext">50/100</b></div>
+      <div class="upcoming" id="upcoming"><span>即将进入下一级</span> <b id="upNext">200/400</b></div>
       <div class="timer-ring">
         <div class="ring-glow"></div>
         <svg viewBox="0 0 400 400" role="img" aria-label="倒计时圆环">
@@ -1181,8 +1247,8 @@
         <div class="ring-center">
           <div class="round" id="roundLabel">第1轮</div>
           <div class="time" id="timeLabel">12:00</div>
-          <div class="blind-now" id="blindNow">当前盲注 25/50</div>
-          <div class="blind-next" id="blindNext">下一级 <b>50/100</b></div>
+          <div class="blind-now" id="blindNow">当前盲注 100/200</div>
+          <div class="blind-next" id="blindNext">下一级 <b>200/400</b></div>
           <div class="level-pill" id="levelPill">LEVEL 1</div>
         </div>
       </div>
@@ -1265,10 +1331,33 @@
     <div class="sg"><div class="sg-label">总记分牌</div><div class="sg-en">Total Chips</div><div class="sg-val" id="stagePool">10,000</div></div>
   </div>
   <div class="stage-blinds">
-    <div class="sg"><div class="sg-label">当前基础分</div><div class="sg-en">Current Blinds</div><div class="sg-val" id="stageBlinds">25/50</div></div>
-    <div class="sg"><div class="sg-label">下个级别</div><div class="sg-en">Next Blinds</div><div class="sg-val" id="stageNext">50/100</div></div>
+    <div class="sg"><div class="sg-label">当前基础分</div><div class="sg-en">Current Blinds</div><div class="sg-val" id="stageBlinds">100/200</div></div>
+    <div class="sg"><div class="sg-label">下个级别</div><div class="sg-en">Next Blinds</div><div class="sg-val" id="stageNext">200/400</div></div>
   </div>
   <button class="stage-exit" id="stageExit" type="button">退出大屏</button>
+</div>
+
+<!-- ===== 登录门禁 ===== -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-card" id="authCard">
+    <div class="auth-lock">
+      <svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.4"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.6v2.2"/></svg>
+    </div>
+    <div class="auth-kicker">SANMENG POKER · ACCESS CONTROL</div>
+    <div class="auth-title">赛事控制台</div>
+    <div class="auth-desc">请输入账号与密码后进入</div>
+    <div class="auth-field">
+      <label for="authUser">账号</label>
+      <input id="authUser" type="tel" inputmode="numeric" autocomplete="username" placeholder="输入账号">
+    </div>
+    <div class="auth-field">
+      <label for="authPass">密码</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="输入密码">
+    </div>
+    <div class="auth-err" id="authErr"></div>
+    <button class="auth-btn" id="authBtn" type="button">登 录</button>
+    <div class="auth-foot">仅限赛事工作人员使用</div>
+  </div>
 </div>
 
 <script>
@@ -1300,22 +1389,24 @@
 })();
 
 /* ============ 预设盲注结构 ============ */
+/* 统一大小盲级别表：Lv1 100/200 → Lv19 10000/20000，前注均为 0 */
+var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],[600,1200,0],[700,1400,0],[800,1600,0],[900,1800,0],[1000,2000,0],[1000,2000,0],[2000,4000,0],[2000,4000,0],[3000,6000,0],[3000,6000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0],[10000,20000,0]];
 var PRESETS = {
   standard: {
     name:'标准', minutes:12, breakEvery:4, breakMinutes:10,
-    levels:[[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[100,200,0],[1000,2000,0],[1000,2000,0],[1000,2000,0],[1000,2000,0],[1000,2000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0],[5000,10000,0]]
+    levels:BLIND_TABLE
   },
   turbo: {
     name:'快速', minutes:8, breakEvery:4, breakMinutes:5,
-    levels:[[25,50,0],[50,100,0],[75,150,0],[100,200,0],[150,300,0],[200,400,25],[300,600,50],[400,800,50],[500,1000,100],[600,1200,100],[800,1600,200],[1000,2000,200],[1500,3000,300],[2000,4000,400],[3000,6000,600],[4000,8000,800]]
+    levels:BLIND_TABLE
   },
   deepstack: {
     name:'深筹', minutes:20, breakEvery:3, breakMinutes:15,
-    levels:[[25,50,0],[50,100,0],[75,150,0],[100,200,0],[150,300,0],[200,400,0],[250,500,25],[300,600,25],[400,800,50],[500,1000,50],[600,1200,100],[800,1600,100],[1000,2000,200],[1500,3000,300],[2000,4000,400]]
+    levels:BLIND_TABLE
   },
   hyper: {
     name:'超快', minutes:5, breakEvery:4, breakMinutes:3,
-    levels:[[25,50,0],[50,100,0],[100,200,0],[150,300,0],[200,400,25],[300,600,50],[400,800,50],[600,1200,100],[800,1600,200],[1200,2400,200],[2000,4000,400],[3000,6000,600]]
+    levels:BLIND_TABLE
   }
 };
 
@@ -1391,22 +1482,35 @@ var els = {
 };
 
 /* ============ 持久化 ============ */
-var LS_KEY = 'pokerTimer_v5';
+var LS_KEY = 'pokerTimer_v6';
 function saveAll(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({s:settings, b:blindStructure, p:prizes})); }catch(e){}
 }
 function loadAll(){
   try{
     var raw = localStorage.getItem(LS_KEY);
-    var legacy = null;
+    var migrated = false;
     if (!raw){
-      legacy = localStorage.getItem('pokerTimer_v4');
-      if (legacy){ var d0 = JSON.parse(legacy); if (d0 && Array.isArray(d0.b)) delete d0.b; raw = JSON.stringify(d0); }
+      var legacy = localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
+      if (legacy){
+        var d0 = JSON.parse(legacy);
+        raw = JSON.stringify(d0);
+        migrated = true;
+      }
     }
     if (!raw) return;
     var d = JSON.parse(raw);
     if (d.s && typeof d.s === 'object') settings = Object.assign({}, DEFAULT_SETTINGS, d.s);
-    if (Array.isArray(d.b) && d.b.length){
+    if (migrated){
+      /* v6：旧盲注结构统一换成最新「大小盲表」，保留原来的每级时长 */
+      blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes);
+      var old = Array.isArray(d.b) ? d.b : [];
+      for (var i = 0; i < blindStructure.length; i++){
+        var m = old[i] ? +old[i].minutes : 0;
+        if (m > 0) blindStructure[i].minutes = m;
+      }
+      settings.presetKey = 'standard';
+    } else if (Array.isArray(d.b) && d.b.length){
       blindStructure = d.b.map(function(x, i){
         return {level: i + 1, sb: +x.sb || 0, bb: +x.bb || 0, ante: +x.ante || 0, minutes: +x.minutes || 10};
       });
@@ -1920,6 +2024,9 @@ function buildSettings(){
     '<div class="section-label">盲注结构预设</div>' +
     '<div class="presets" id="presetGroup">' + presetBtnsHtml() + '</div>' +
     '<p class="note">当前结构：' + blindStructure.length + ' 个级别 · 每级 ' + cur().minutes + ' 分钟 · 预计总时长 ≈ ' + fmtDuration(estimateTotal()) + '。级别时长可在「盲注结构」中单独编辑。</p>' +
+    '<div class="section-label">账号</div>' +
+    '<p class="note">当前设备已登录。退出后需要重新输入账号密码才能进入。</p>' +
+    '<div class="sheet-actions"><button class="btn ghost sm" id="btnLogout" type="button">退出登录</button></div>' +
     '<div class="sheet-actions">' +
     '<button class="btn ghost sm" id="setCancel" type="button">取消</button>' +
     '<button class="btn sm" id="setSave" type="button">保存设置</button>' +
@@ -2053,12 +2160,12 @@ document.addEventListener('click', function(e){
         } else if (el.hasAttribute('data-key')){
           var key = el.getAttribute('data-key');
           var cb = blindStructure[state.level];
-          if (key === 'sb'){ cb.blind = v; }
-          else if (key === 'bb'){ cb.bigBlind = v; }
+          if (key === 'sb'){ cb.sb = v; }
+          else if (key === 'bb'){ cb.bb = v; }
           else if (key === 'ante'){ cb.ante = v; }
           else { settings[key] = v; }
         }
-        save();
+        try { saveAll(); } catch(err) {}
       }
     }
     el.textContent = '';
@@ -2094,8 +2201,8 @@ function finish2(el, input, saveVal){
       } else if (el.hasAttribute('data-key')){
         var key = el.getAttribute('data-key');
         var cb = blindStructure[state.level];
-        if (key === 'sb'){ cb.blind = v; }
-        else if (key === 'bb'){ cb.bigBlind = v; }
+        if (key === 'sb'){ cb.sb = v; }
+        else if (key === 'bb'){ cb.bb = v; }
         else if (key === 'ante'){ cb.ante = v; }
         else { settings[key] = v; }
       }
@@ -2118,6 +2225,11 @@ els.sheetBody.addEventListener('click', function(e){
   var t = e.target;
 
   /* 设置面板 */
+  if (t.id === 'btnLogout'){
+    try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
+    location.reload();
+    return;
+  }
   if (t.id === 'setSave'){
     var name = $('setName').value.trim() || DEFAULT_SETTINGS.eventName;
     var players = parseInt($('setPlayers').value, 10);
@@ -2201,6 +2313,98 @@ els.sheetBody.addEventListener('click', function(e){
     return;
   }
 });
+
+/* ============ 登录门禁 ============ */
+var AUTH_KEY = 'pokerTimer_auth_v1';
+var AUTH_SALT = 'sanmar-dezhou-2026';
+/* 账号密码只存 SHA-256 令牌，源码里不出现明文；后续加账号往数组里追加一条令牌即可 */
+var ACCOUNTS = [
+  'c5052ebdfafe481c58f496b3d06cda905f9afee4087d1079365787bdf8d433db',
+  'abcfc1431f67556578308d04260e4483a0efbe3e41bc51d10909f0e9c9d9ead7',
+  '2f53c1e65712a884888e546ffe6f59cb00de935e4082cff95610271ffb258e8b'
+];
+var authGate = $('authGate'), authCard = $('authCard'), authUser = $('authUser'),
+    authPass = $('authPass'), authErr = $('authErr'), authBtn = $('authBtn');
+var authFails = 0, authLockUntil = 0, authTimer = null;
+
+function sha256Hex(str){
+  if (!(window.crypto && window.crypto.subtle)) return Promise.reject(new Error('no-crypto'));
+  return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function(buf){
+    var arr = new Uint8Array(buf), hex = '';
+    for (var i = 0; i < arr.length; i++) hex += ('0' + arr[i].toString(16)).slice(-2);
+    return hex;
+  });
+}
+function authToken(u, p){ return sha256Hex(AUTH_SALT + '|' + u + '|' + p); }
+function unlockApp(){
+  authGate.classList.add('hidden');
+  document.body.classList.remove('auth-locked');
+  if (authTimer){ clearInterval(authTimer); authTimer = null; }
+}
+function authError(msg){
+  authErr.textContent = msg;
+  authCard.classList.remove('shake');
+  void authCard.offsetWidth;
+  authCard.classList.add('shake');
+}
+function authCooldown(){
+  authBtn.disabled = true;
+  function tick(){
+    var left = Math.ceil((authLockUntil - Date.now()) / 1000);
+    if (left <= 0){
+      authBtn.disabled = false;
+      authBtn.textContent = '登 录';
+      if (authTimer){ clearInterval(authTimer); authTimer = null; }
+      return;
+    }
+    authBtn.textContent = '请稍候 ' + left + 's';
+  }
+  tick();
+  if (authTimer) clearInterval(authTimer);
+  authTimer = setInterval(tick, 500);
+}
+function doLogin(){
+  if (authBtn.disabled) return;
+  var u = (authUser.value || '').replace(/\s/g, '');
+  var p = authPass.value || '';
+  if (!u || !p){ authError('请输入账号和密码'); return; }
+  authErr.textContent = '';
+  authBtn.disabled = true;
+  authBtn.textContent = '验证中...';
+  authToken(u, p).then(function(t){
+    if (ACCOUNTS.indexOf(t) >= 0){
+      try{ localStorage.setItem(AUTH_KEY, t); }catch(e){}
+      authPass.value = '';
+      unlockApp();
+    } else {
+      authFails++;
+      authBtn.disabled = false;
+      authBtn.textContent = '登 录';
+      if (authFails >= 5){
+        authFails = 0;
+        authLockUntil = Date.now() + 30000;
+        authError('尝试次数过多，请 30 秒后再试');
+        authCooldown();
+      } else {
+        authError('账号或密码错误');
+      }
+    }
+  }).catch(function(){
+    authBtn.disabled = false;
+    authBtn.textContent = '登 录';
+    authError('当前环境不支持安全登录，请用 https 访问');
+  });
+}
+authBtn.addEventListener('click', doLogin);
+authPass.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); doLogin(); } });
+authUser.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); authPass.focus(); } });
+(function initAuth(){
+  var saved = null;
+  try{ saved = localStorage.getItem(AUTH_KEY); }catch(e){}
+  if (saved && ACCOUNTS.indexOf(saved) >= 0){ unlockApp(); return; }
+  document.body.classList.add('auth-locked');
+  if (!('ontouchstart' in window)) setTimeout(function(){ authUser.focus(); }, 80);
+})();
 
 /* ============ 初始化 ============ */
 loadAll();
