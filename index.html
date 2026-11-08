@@ -781,6 +781,13 @@
   .stage-time .st-m{flex:none;width:1.8em;text-align:right;padding-right:0.04em}
   .stage-time .st-colon{flex:none;width:0.5em;text-align:center}
   .stage-time .st-s{flex:none;width:1.8em;text-align:left;padding-left:0.04em}
+  .stage-break-label{
+    position:absolute;top:30%;left:0;right:0;text-align:center;
+    font-size:clamp(16px,1.8vw,26px);font-weight:600;letter-spacing:4px;
+    color:rgba(255,255,255,.78);text-shadow:0 2px 18px rgba(0,0,0,.5);
+    opacity:0;transition:opacity .25s ease;
+  }
+  .stage-break-label.show{opacity:1}
   .stage-time.urgent{
     color:#FF5C7A;
     text-shadow:0 0 80px rgba(255,80,100,.7), 0 4px 30px rgba(0,0,0,.4);
@@ -1318,6 +1325,7 @@
   <div class="stage-fee" id="stageFee"></div>
   <div class="fee-alert-layer" id="feeAlert"></div>
   <div class="stage-time" id="stageTime">12:00</div>
+  <div class="stage-break-label" id="stageBreakLabel">休息时间</div>
   <div class="stage-hint" id="stageHint">点击倒计时 <b>切换下一轮</b></div>
   <div class="stage-corner stage-tl">
     <div class="sg"><div class="sg-label">当前级别</div><div class="sg-en">Current Level</div><div class="sg-val" id="stageLevel">1</div></div>
@@ -1862,12 +1870,14 @@ function toggleStage(){
   var st = $('stageOverlay');
   var on = st.classList.toggle('on');
   if (on){
+    document.body.style.overflow = 'hidden';
     syncStage();
     toast('已进入大屏模式，按 ESC 退出');
   }
 }
 function exitStage(){
   $('stageOverlay').classList.remove('on');
+  document.body.style.overflow = '';
 }
 function syncStage(){
   var isBreak = state.mode === 'break';
@@ -1875,6 +1885,7 @@ function syncStage(){
   var _t = fmtTime(state.remaining);
   var _mm = _t.slice(0,2), _ss = _t.slice(3);
   $('stageTime').innerHTML = '<span class="st-m">'+_mm+'</span><span class="st-colon">:</span><span class="st-s">'+_ss+'</span>';
+  $('stageBreakLabel').classList.toggle('show', isBreak);
   $('stageTime').classList.toggle('urgent', state.running && !isBreak && settings.warnEnabled && state.remaining <= settings.warnAt);
   $('stageEvent').textContent = settings.eventName || '扑克赛事';
   $('stageLevel').textContent = isBreak ? '→ L' + n.level : ('L' + c.level);
