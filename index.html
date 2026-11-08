@@ -1389,8 +1389,8 @@
 })();
 
 /* ============ 预设盲注结构 ============ */
-/* 统一大小盲级别表：Lv1 100/200 → Lv17 5000/10000，前注均为 0 */
-var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],[600,1200,0],[700,1400,0],[800,1600,0],[900,1800,0],[1000,2000,0],[1000,2000,0],[2000,4000,0],[2000,4000,0],[3000,6000,0],[3000,6000,0],[5000,10000,0],[5000,10000,0]];
+/* 统一大小盲级别表：Lv1 100/200 → Lv17 50000/100000，前注均为 0 */
+var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],[600,1200,0],[800,1600,0],[1000,2000,0],[2000,4000,0],[3000,6000,0],[4000,8000,0],[5000,10000,0],[10000,20000,0],[20000,40000,0],[30000,60000,0],[40000,80000,0],[50000,100000,0]];
 /* 标准结构每级时长：1-7 级 10 分钟，8-11 级 8 分钟，12-17 级 6 分钟 */
 var STANDARD_MINUTES = [10,10,10,10,10,10,10,8,8,8,8,6,6,6,6,6,6];
 var PRESETS = {
@@ -1485,7 +1485,7 @@ var els = {
 };
 
 /* ============ 持久化 ============ */
-var LS_KEY = 'pokerTimer_v8';
+var LS_KEY = 'pokerTimer_v9';
 function saveAll(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({s:settings, b:blindStructure, p:prizes})); }catch(e){}
 }
@@ -1494,7 +1494,7 @@ function loadAll(){
     var raw = localStorage.getItem(LS_KEY);
     var migrated = false;
     if (!raw){
-      var legacy = localStorage.getItem('pokerTimer_v7') || localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
+      var legacy = localStorage.getItem('pokerTimer_v8') || localStorage.getItem('pokerTimer_v7') || localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
       if (legacy){
         var d0 = JSON.parse(legacy);
         raw = JSON.stringify(d0);
@@ -1505,11 +1505,12 @@ function loadAll(){
     var d = JSON.parse(raw);
     if (d.s && typeof d.s === 'object') settings = Object.assign({}, DEFAULT_SETTINGS, d.s);
     if (migrated){
-      /* v8：换成 17 级新表，每级结束后休息 5 分钟；保留赛事设置与奖金 */
-      blindStructure = buildBlindsFromPreset(PRESETS.standard.levels, PRESETS.standard.minutes, PRESETS.standard.minutesByLevel);
+      /* v9：17 级大小盲改按新表（Lv7 起涨幅不同），保留每级时长、赛事设置与奖金 */
+      var keepMin = (Array.isArray(d.b) && d.b.length === BLIND_TABLE.length)
+        ? d.b.map(function(x){ return +x.minutes || 10; })
+        : STANDARD_MINUTES;
+      blindStructure = buildBlindsFromPreset(BLIND_TABLE, 10, keepMin);
       settings.presetKey = 'standard';
-      settings.breakEvery = 1;
-      settings.breakMinutes = 5;
     } else if (Array.isArray(d.b) && d.b.length){
       blindStructure = d.b.map(function(x, i){
         return {level: i + 1, sb: +x.sb || 0, bb: +x.bb || 0, ante: +x.ante || 0, minutes: +x.minutes || 10};
