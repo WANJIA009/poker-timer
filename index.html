@@ -1326,7 +1326,6 @@
   </div>
   <div class="stage-corner stage-tr">
     <div class="sg"><div class="sg-label">当前时间</div><div class="sg-en">Clock</div><div class="sg-val" id="stageClock">--:--:--</div></div>
-    <div class="sg"><div class="sg-label">下次休息</div><div class="sg-en">Next Break</div><div class="sg-val" id="stageBreak">5 分钟</div></div>
     <div class="sg"><div class="sg-label">平均记分牌</div><div class="sg-en">Avg Chips</div><div class="sg-val" id="stageAvg">10,000</div></div>
     <div class="sg"><div class="sg-label">总记分牌</div><div class="sg-en">Total Chips</div><div class="sg-val" id="stagePool">10,000</div></div>
   </div>
@@ -1395,19 +1394,19 @@ var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],
 var STANDARD_MINUTES = [10,10,10,10,10,10,10,8,8,8,8,6,6,6,6,6,6];
 var PRESETS = {
   standard: {
-    name:'标准', minutes:10, breakEvery:1, breakMinutes:5,
+    name:'标准', minutes:10, breakEvery:0, breakMinutes:0,
     levels:BLIND_TABLE, minutesByLevel:STANDARD_MINUTES
   },
   turbo: {
-    name:'快速', minutes:8, breakEvery:1, breakMinutes:5,
+    name:'快速', minutes:8, breakEvery:0, breakMinutes:0,
     levels:BLIND_TABLE
   },
   deepstack: {
-    name:'深筹', minutes:20, breakEvery:1, breakMinutes:5,
+    name:'深筹', minutes:20, breakEvery:0, breakMinutes:0,
     levels:BLIND_TABLE
   },
   hyper: {
-    name:'超快', minutes:5, breakEvery:1, breakMinutes:5,
+    name:'超快', minutes:5, breakEvery:0, breakMinutes:0,
     levels:BLIND_TABLE
   }
 };
@@ -1419,8 +1418,8 @@ var DEFAULT_SETTINGS = {
   startingStack: 10000,
   avgStack: 10000,
   prizePool: 10000,
-  breakEvery: 1,      // 每 N 级休息一次；0 = 不休息
-  breakMinutes: 5,
+  breakEvery: 0,      // 每 N 级休息一次；0 = 不休息
+  breakMinutes: 0,
   sound: true,
   warnEnabled: true,  // 倒计时剩余秒数提醒
   warnAt: 30,         // 剩余多少秒时提醒
@@ -1485,7 +1484,7 @@ var els = {
 };
 
 /* ============ 持久化 ============ */
-var LS_KEY = 'pokerTimer_v9';
+var LS_KEY = 'pokerTimer_v10';
 function saveAll(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({s:settings, b:blindStructure, p:prizes})); }catch(e){}
 }
@@ -1494,7 +1493,7 @@ function loadAll(){
     var raw = localStorage.getItem(LS_KEY);
     var migrated = false;
     if (!raw){
-      var legacy = localStorage.getItem('pokerTimer_v8') || localStorage.getItem('pokerTimer_v7') || localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
+      var legacy = localStorage.getItem('pokerTimer_v9') || localStorage.getItem('pokerTimer_v8') || localStorage.getItem('pokerTimer_v7') || localStorage.getItem('pokerTimer_v6') || localStorage.getItem('pokerTimer_v5') || localStorage.getItem('pokerTimer_v4');
       if (legacy){
         var d0 = JSON.parse(legacy);
         raw = JSON.stringify(d0);
@@ -1505,12 +1504,14 @@ function loadAll(){
     var d = JSON.parse(raw);
     if (d.s && typeof d.s === 'object') settings = Object.assign({}, DEFAULT_SETTINGS, d.s);
     if (migrated){
-      /* v9：17 级大小盲改按新表（Lv7 起涨幅不同），保留每级时长、赛事设置与奖金 */
+      /* v10：取消休息（保留盲注表、每级时长、赛事设置与奖金） */
       var keepMin = (Array.isArray(d.b) && d.b.length === BLIND_TABLE.length)
         ? d.b.map(function(x){ return +x.minutes || 10; })
         : STANDARD_MINUTES;
       blindStructure = buildBlindsFromPreset(BLIND_TABLE, 10, keepMin);
       settings.presetKey = 'standard';
+      settings.breakEvery = 0;
+      settings.breakMinutes = 0;
     } else if (Array.isArray(d.b) && d.b.length){
       blindStructure = d.b.map(function(x, i){
         return {level: i + 1, sb: +x.sb || 0, bb: +x.bb || 0, ante: +x.ante || 0, minutes: +x.minutes || 10};
@@ -1873,7 +1874,6 @@ function syncStage(){
   $('stagePlayers').textContent = String(settings.players);
   $('stagePrizes').textContent = String(prizes.filter(function(p){return p.amount > 0;}).length);
   $('stageClock').textContent = els.topClock.textContent;
-  $('stageBreak').textContent = isBreak ? '休息 ' + settings.breakMinutes + ' 分' : (settings.breakMinutes + ' 分钟');
   $('stageAvg').textContent = fmtNum(settings.startingStack);
   $('stagePool').textContent = fmtNum(totalPrize());
   $('stageBlinds').textContent = c.sb + '/' + c.bb;
@@ -1940,15 +1940,14 @@ function buildInfo(){
   return '<div class="info-grid">' +
     '<div class="info-card"><div class="k">赛事名称</div><div class="v">' + esc(settings.eventName) + '</div></div>' +
     '<div class="info-card"><div class="k">赛事类型</div><div class="v">无限注德州扑克</div></div>' +
-    '<div class="info-card"><div class="k">当前轮次</div><div class="v"><em>' + (state.mode === 'break' ? '休息中' : '第' + (state.level + 1) + '轮') + '</em></div></div>' +
+    '<div class="info-card"><div class="k">当前轮次</div><div class="v"><em>第' + (state.level + 1) + '轮</em></div></div>' +
     '<div class="info-card"><div class="k">盲注</div><div class="v"><em>' + c.sb + '/' + c.bb + '</em></div></div>' +
     '<div class="info-card"><div class="k">参赛人数</div><div class="v">' + settings.players + ' 人</div></div>' +
     '<div class="info-card"><div class="k">起始筹码</div><div class="v">' + fmtNum(settings.startingStack) + '</div></div>' +
     '<div class="info-card"><div class="k">级别时长</div><div class="v">' + c.minutes + ' 分钟/级</div></div>' +
     '<div class="info-card"><div class="k">奖池</div><div class="v">' + fmtNum(totalPrize()) + '</div></div>' +
-    '<div class="info-card"><div class="k">休息安排</div><div class="v">' + (settings.breakEvery > 0 ? '每 ' + settings.breakEvery + ' 级休 ' + settings.breakMinutes + ' 分' : '无') + '</div></div>' +
     '<div class="info-card"><div class="k">预计总时长</div><div class="v"><em>≈ ' + fmtDuration(estimateTotal()) + '</em></div></div>' +
-    '<div class="info-card full"><div class="k">说明</div><div class="desc">倒计时结束自动升级，每 N 级后自动进入休息；级别时长可在「盲注结构」中单独编辑；平均筹码取起始筹码值。</div></div>' +
+    '<div class="info-card full"><div class="k">说明</div><div class="desc">倒计时结束自动进入下一级；级别时长可在「盲注结构」中单独编辑；平均筹码取起始筹码值。</div></div>' +
     '</div>';
 }
 
@@ -1961,7 +1960,7 @@ function buildBlinds(){
     html += '<tr' + cls + '><td>第' + b.level + '轮</td><td>' + b.sb + '</td><td>' + b.bb + '</td><td>' + b.ante + '</td><td>' + b.minutes + ' 分钟</td></tr>';
   }
   html += '</tbody></table>' +
-    '<p class="note">当前级别已高亮 · ' + (settings.breakEvery > 0 ? '每 ' + settings.breakEvery + ' 级休息 ' + settings.breakMinutes + ' 分钟' : '未启用休息') + ' · 预计总时长 ≈ ' + fmtDuration(estimateTotal()) + '</p>' +
+    '<p class="note">当前级别已高亮 · 预计总时长 ≈ ' + fmtDuration(estimateTotal()) + '</p>' +
     '<div class="sheet-actions"><button class="btn ghost sm" id="btnEditBlinds" type="button">编辑盲注结构</button></div>';
   return html;
 }
@@ -2017,18 +2016,9 @@ function buildSettings(){
     '<div class="field"><label>参赛人数</label><input id="setPlayers" type="number" min="2" max="1000" value="' + settings.players + '"></div>' +
     '<div class="field"><label>起始筹码</label><input id="setStack" type="number" min="100" step="100" value="' + settings.startingStack + '"></div>' +
     '</div>' +
-    '<div class="section-label">休息与提醒</div>' +
+    '<div class="section-label">提醒</div>' +
     '<div class="form-grid">' +
-    '<div class="field"><label>休息频率</label><select id="setBreakEvery">' +
-    '<option value="0"' + (settings.breakEvery === 0 ? ' selected' : '') + '>不休息</option>' +
-    '<option value="1"' + (settings.breakEvery === 1 ? ' selected' : '') + '>每 1 级休息一次</option>' +
-    '<option value="3"' + (settings.breakEvery === 3 ? ' selected' : '') + '>每 3 级休息一次</option>' +
-    '<option value="4"' + (settings.breakEvery === 4 ? ' selected' : '') + '>每 4 级休息一次</option>' +
-    '<option value="5"' + (settings.breakEvery === 5 ? ' selected' : '') + '>每 5 级休息一次</option>' +
-    '<option value="6"' + (settings.breakEvery === 6 ? ' selected' : '') + '>每 6 级休息一次</option>' +
-    '</select></div>' +
-    '<div class="field"><label>休息时长（分钟）</label><input id="setBreakMin" type="number" min="0" max="120" value="' + settings.breakMinutes + '"></div>' +
-    '<div class="field check"><input id="setSound" type="checkbox"' + (settings.sound ? ' checked' : '') + '><label for="setSound">提示音（升级 / 休息）</label></div>' +
+    '<div class="field check"><input id="setSound" type="checkbox"' + (settings.sound ? ' checked' : '') + '><label for="setSound">提示音（升级提醒）</label></div>' +
     '<div class="field check"><input id="setWarnOn" type="checkbox"' + (settings.warnEnabled ? ' checked' : '') + '><label for="setWarnOn">倒计时提醒</label></div>' +
     '<div class="field"><label>剩余秒数提醒</label><select id="setWarnAt">' +
     '<option value="10"' + (settings.warnAt === 10 ? ' selected' : '') + '>最后 10 秒</option>' +
@@ -2247,21 +2237,15 @@ els.sheetBody.addEventListener('click', function(e){
     var name = $('setName').value.trim() || DEFAULT_SETTINGS.eventName;
     var players = parseInt($('setPlayers').value, 10);
     var stack = parseInt($('setStack').value, 10);
-    var bevery = parseInt($('setBreakEvery').value, 10);
-    var bmin = parseInt($('setBreakMin').value, 10);
     var sound = $('setSound').checked;
     var warnOn = $('setWarnOn').checked;
     var warnAt = parseInt($('setWarnAt').value, 10) || 30;
     if (!players || players < 2){ toast('参赛人数至少 2 人', true); return; }
     if (!stack || stack < 100){ toast('起始筹码不能低于 100', true); return; }
-    if (bevery === 0) bmin = 0;
-    if (isNaN(bmin) || bmin < 0){ toast('休息时长无效', true); return; }
 
     settings.eventName = name;
     settings.players = players;
     settings.startingStack = stack;
-    settings.breakEvery = bevery;
-    settings.breakMinutes = bmin;
     settings.sound = sound;
     settings.warnEnabled = warnOn;
     settings.warnAt = warnAt;
