@@ -1326,6 +1326,7 @@
   </div>
   <div class="stage-corner stage-tr">
     <div class="sg"><div class="sg-label">当前时间</div><div class="sg-en">Clock</div><div class="sg-val" id="stageClock">--:--:--</div></div>
+    <div class="sg"><div class="sg-label">休息时间</div><div class="sg-en">Break</div><div class="sg-val" id="stageBreak">5 分钟</div></div>
     <div class="sg"><div class="sg-label">平均记分牌</div><div class="sg-en">Avg Chips</div><div class="sg-val" id="stageAvg">10,000</div></div>
     <div class="sg"><div class="sg-label">总记分牌</div><div class="sg-en">Total Chips</div><div class="sg-val" id="stagePool">10,000</div></div>
   </div>
@@ -1880,6 +1881,7 @@ function syncStage(){
   $('stagePlayers').textContent = String(settings.players);
   $('stagePrizes').textContent = String(prizes.filter(function(p){return p.amount > 0;}).length);
   $('stageClock').textContent = els.topClock.textContent;
+  $('stageBreak').textContent = isBreak ? '休息中' : BREAK_MINUTES + ' 分钟';
   $('stageAvg').textContent = fmtNum(settings.startingStack);
   $('stagePool').textContent = fmtNum(totalPrize());
   $('stageBlinds').textContent = c.sb + '/' + c.bb;
