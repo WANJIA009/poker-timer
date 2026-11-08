@@ -1149,7 +1149,7 @@
     </nav>
     <div class="top-center">
       <div class="ev-name-row">
-        <div class="ev-name" id="topEventName">周末邀请赛</div>
+        <div class="ev-name" id="topEventName">叁盟日常赛</div>
         <button class="ev-edit" id="btnEditName" type="button" aria-label="编辑赛事名称">
           <svg viewBox="0 0 24 24"><path d="M17 3l4 4L8 20l-5 1 1-5z"/><path d="M14.5 6.5l3 3"/></svg>
         </button>
@@ -1314,7 +1314,7 @@
 
 <!-- ===== 大屏模式（投影/直播展示） ===== -->
 <div class="stage" id="stageOverlay">
-  <div class="stage-event" id="stageEvent">周末邀请赛</div>
+  <div class="stage-event" id="stageEvent">叁盟日常赛</div>
   <div class="stage-fee" id="stageFee"></div>
   <div class="fee-alert-layer" id="feeAlert"></div>
   <div class="stage-time" id="stageTime">12:00</div>
@@ -1413,7 +1413,7 @@ var PRESETS = {
 
 /* ============ 设置 ============ */
 var DEFAULT_SETTINGS = {
-  eventName: '周末邀请赛',
+  eventName: '叁盟日常赛',
   players: 10,
   startingStack: 10000,
   avgStack: 10000,
@@ -1518,6 +1518,11 @@ function loadAll(){
       });
     }
     if (Array.isArray(d.p) && d.p.length) prizes = d.p;
+    /* 旧默认名替换：仅当仍是旧的「周末邀请赛」时改成新名，不覆盖用户自定名称 */
+    if (settings.eventName === '周末邀请赛'){
+      settings.eventName = '叁盟日常赛';
+      saveAll();
+    }
   }catch(e){}
 }
 
