@@ -1392,6 +1392,9 @@
 var BLIND_TABLE = [[100,200,0],[200,400,0],[300,600,0],[400,800,0],[500,1000,0],[600,1200,0],[800,1600,0],[1000,2000,0],[2000,4000,0],[3000,6000,0],[4000,8000,0],[5000,10000,0],[10000,20000,0],[20000,40000,0],[30000,60000,0],[40000,80000,0],[50000,100000,0]];
 /* 标准结构每级时长：1-7 级 10 分钟，8-11 级 8 分钟，12-17 级 6 分钟 */
 var STANDARD_MINUTES = [10,10,10,10,10,10,10,8,8,8,8,6,6,6,6,6,6];
+/* 固定休息：第 7 级结束后休息一次，5 分钟 */
+var BREAK_AFTER_LEVEL = 7;
+var BREAK_MINUTES = 5;
 var PRESETS = {
   standard: {
     name:'标准', minutes:10, breakEvery:0, breakMinutes:0,
@@ -1542,9 +1545,7 @@ function next(){ return blindStructure[Math.min(state.level + 1, blindStructure.
 function estimateTotal(){
   var t = 0, i;
   for (i = 0; i < blindStructure.length; i++) t += blindStructure[i].minutes;
-  if (settings.breakEvery > 0 && blindStructure.length > 1){
-    t += Math.floor((blindStructure.length - 1) / settings.breakEvery) * settings.breakMinutes;
-  }
+  if (blindStructure.length >= BREAK_AFTER_LEVEL + 1) t += BREAK_MINUTES;
   return t;
 }
 function toast(msg, warn){
@@ -1587,7 +1588,7 @@ function sndEnd(){ beep(330, .2, 0, .2); beep(220, .3, .22, .18); }
 function render(){
   var isBreak = state.mode === 'break';
   var c = cur(), n = next();
-  var secTotal = isBreak ? (settings.breakMinutes * 60) : (c.minutes * 60);
+  var secTotal = isBreak ? (BREAK_MINUTES * 60) : (c.minutes * 60);
   var ratio = secTotal > 0 ? state.remaining / secTotal : 0;
   ratio = Math.max(0, Math.min(1, ratio));
   var offset = (RING_C * (1 - ratio)).toFixed(1);
@@ -1605,7 +1606,7 @@ function render(){
     els.roundLabel.textContent = '休息时间';
     els.levelPill.textContent = 'BREAK';
     els.blindNow.innerHTML = '下一级 <span class="bv">' + n.sb + '/' + n.bb + '</span>';
-    els.blindNext.innerHTML = '休息 ' + settings.breakMinutes + ' 分钟';
+    els.blindNext.innerHTML = '休息 ' + BREAK_MINUTES + ' 分钟';
     els.rpLabelText.textContent = 'BREAK';
     els.rpCur.textContent = '→ L' + n.level;
     els.upcoming.classList.remove('show');
@@ -1754,10 +1755,10 @@ function pause(){
 /* 本轮结束：进入休息（如启用） */
 function enterBreak(){
   state.mode = 'break';
-  state.remaining = settings.breakMinutes * 60;
+  state.remaining = BREAK_MINUTES * 60;
   state.lastTick = 0;
   flashRing(); render(); sndBreak();
-  toast('休息时间 ' + settings.breakMinutes + ' 分钟');
+  toast('休息时间 ' + BREAK_MINUTES + ' 分钟');
 }
 /* 自动到点：结束当前级别 */
 function endLevel(){
@@ -1766,7 +1767,7 @@ function endLevel(){
     toast('已完成全部盲注级别', true);
     return;
   }
-  if (settings.breakEvery > 0 && (state.level + 1) % settings.breakEvery === 0){
+  if (state.level + 1 === BREAK_AFTER_LEVEL){
     enterBreak();
     return;
   }
@@ -1828,7 +1829,7 @@ function gotoNext(auto){
 function manualNext(){
   if (state.mode === 'break'){ endBreak(); return; }
   if (state.level >= blindStructure.length - 1){ toast('已是最后一轮', true); return; }
-  if (settings.breakEvery > 0 && (state.level + 1) % settings.breakEvery === 0){
+  if (state.level + 1 === BREAK_AFTER_LEVEL){
     enterBreak();
     return;
   }
@@ -1951,6 +1952,7 @@ function buildInfo(){
     '<div class="info-card"><div class="k">起始筹码</div><div class="v">' + fmtNum(settings.startingStack) + '</div></div>' +
     '<div class="info-card"><div class="k">级别时长</div><div class="v">' + c.minutes + ' 分钟/级</div></div>' +
     '<div class="info-card"><div class="k">奖池</div><div class="v">' + fmtNum(totalPrize()) + '</div></div>' +
+    '<div class="info-card"><div class="k">休息安排</div><div class="v">第 7 级后休 5 分钟</div></div>' +
     '<div class="info-card"><div class="k">预计总时长</div><div class="v"><em>≈ ' + fmtDuration(estimateTotal()) + '</em></div></div>' +
     '<div class="info-card full"><div class="k">说明</div><div class="desc">倒计时结束自动进入下一级；级别时长可在「盲注结构」中单独编辑；平均筹码取起始筹码值。</div></div>' +
     '</div>';
